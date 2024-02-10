@@ -58,19 +58,31 @@ namespace Chess.Scripts.Core
         private void HighlightPawnMoves(int row, int column)
         {
             // Implement highlighting logic for pawn moves
-            // Example:
+
             // Highlight one square forward
-            if( (row == 1 || row == 6 ))
+            int forwardDirection = 1;
+            if (IsValidTile(row + forwardDirection, column) && !IsPiecePresent(row + forwardDirection, column))
+            {
+                ChessBoardPlacementHandler.Instance.Highlight(row + forwardDirection, column);
+            }
+
+            // Highlight two squares forward if the pawn is in its starting position and the path is clear
+            if (row == 1 && !IsPiecePresent(row + 1, column) && !IsPiecePresent(row + 2, column))
             {
                 ChessBoardPlacementHandler.Instance.Highlight(row + 2, column);
             }
-            else if(!IsPiecePresent(row, column))
+
+            // Check diagonally for enemy pieces and highlight them
+            if (IsValidTile(row + forwardDirection, column + 1) && IsEnemyPiece(row + forwardDirection, column + 1))
             {
-                ChessBoardPlacementHandler.Instance.Highlight(row + 1, column);
+                ChessBoardPlacementHandler.Instance.HighlightEnemy(row + forwardDirection, column + 1);
             }
-            
-            // Implement other pawn movement rules here
+            if (IsValidTile(row + forwardDirection, column - 1) && IsEnemyPiece(row + forwardDirection, column - 1))
+            {
+                ChessBoardPlacementHandler.Instance.HighlightEnemy(row + forwardDirection, column - 1);
+            }
         }
+
 
         #endregion
 
@@ -272,11 +284,22 @@ namespace Chess.Scripts.Core
             return false;
         }
 
+        private bool IsEnemyPiece(int row, int column)
+        {
+            // Check if any chess piece is present at the specified position
+            ChessPlayerPlacementHandler[] allPieces = FindObjectsOfType<ChessPlayerPlacementHandler>();
+            foreach (var piece in allPieces)
+            {
+                // Check if a piece is present at the specified position and is an enemy piece
+                if (piece.row == row && piece.column == column && piece.CompareTag("Enemy"))
+                {
+                    return true;
+                }
+            }
 
-
-
-
-
+            // No enemy piece found at the specified position
+            return false;
+        }
         #endregion
     }
 }

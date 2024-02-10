@@ -10,6 +10,7 @@ TagManager:
   - Queen
   - King
   - Pawn
+  - Enemy
   layers:
   - Default
   - TransparentFX
