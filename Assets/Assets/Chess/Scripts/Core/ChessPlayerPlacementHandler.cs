@@ -17,6 +17,11 @@ namespace Chess.Scripts.Core
             // Clear all previous highlights
             ChessBoardPlacementHandler.Instance.ClearHighlights();
 
+            string enemyTag = gameObject.tag;
+            if(enemyTag == "Enemy")
+            {
+                return;
+            }
             // Highlight possible moves based on the piece's tag
             HighlightPossibleMoves();
         }
@@ -55,11 +60,11 @@ namespace Chess.Scripts.Core
             // Implement highlighting logic for pawn moves
             // Example:
             // Highlight one square forward
-            if( row == 1 || row == 6 )
+            if( (row == 1 || row == 6 ))
             {
                 ChessBoardPlacementHandler.Instance.Highlight(row + 2, column);
             }
-            else
+            else if(!IsPiecePresent(row, column))
             {
                 ChessBoardPlacementHandler.Instance.Highlight(row + 1, column);
             }
@@ -104,11 +109,12 @@ namespace Chess.Scripts.Core
         private bool HighlightAndCheckOccupancy(int row, int column)
         {
             // Check if the tile is valid and not obstructed by other pieces
-            if (IsValidTile(row, column))
+            if (IsValidTile(row, column) && !IsPiecePresent(row, column))
             {
                 ChessBoardPlacementHandler.Instance.Highlight(row, column);
                 // Return true if the tile is unoccupied, false if occupied
-                return !IsPiecePresent(row, column);
+
+                return true;
             }
             return false; // The tile is invalid (out of bounds)
         }
@@ -167,14 +173,15 @@ namespace Chess.Scripts.Core
             // Loop until we reach the board boundary
             while (IsValidTile(newRow, newColumn))
             {
-                // Highlight the tile
-                ChessBoardPlacementHandler.Instance.Highlight(newRow, newColumn);
-
+                
                 // Check if there's an obstacle (another piece) on this tile
                 if (IsPiecePresent(newRow, newColumn))
                 {
                     break; // Stop highlighting in this direction if an obstacle is found
                 }
+
+                // Highlight the tile
+                ChessBoardPlacementHandler.Instance.Highlight(newRow, newColumn);
 
                 // Move to the next tile in the diagonal direction
                 newRow += rowDirection;
@@ -236,7 +243,7 @@ namespace Chess.Scripts.Core
 
         private bool IsPiecePresent(int row, int column)
         {
-            // Get the game object of the tile at the specified position
+            // Check if the tile at the specified position exists
             GameObject tile = ChessBoardPlacementHandler.Instance.GetTile(row, column);
 
             // If the tile is null, no piece is present
@@ -245,13 +252,18 @@ namespace Chess.Scripts.Core
                 return false;
             }
 
-            // Iterate through all chess pieces to check their positions
+            // Check if any chess piece is present at the specified position
             ChessPlayerPlacementHandler[] allPieces = FindObjectsOfType<ChessPlayerPlacementHandler>();
             foreach (var piece in allPieces)
             {
+                // Check if a piece is present at the specified position
                 if (piece.row == row && piece.column == column)
                 {
-                    // The specified position matches a piece's position
+                    // If it's an enemy piece, highlight it and return true
+                    if (piece.gameObject.CompareTag("Enemy"))
+                    {
+                        ChessBoardPlacementHandler.Instance.HighlightEnemy(row, column);
+                    }
                     return true;
                 }
             }
@@ -259,6 +271,10 @@ namespace Chess.Scripts.Core
             // No piece found at the specified position
             return false;
         }
+
+
+
+
 
 
         #endregion
